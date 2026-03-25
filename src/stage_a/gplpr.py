@@ -25,7 +25,7 @@ from src.utils.paths import ensure_dir, repo_root
 DEFAULT_ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 DEFAULT_STAGE_DIR = Path("external_data/gplpr_stage")
 DEFAULT_OUTPUT_DIR = Path("outputs/stage_a")
-DEFAULT_SPLIT_DIR = Path("manifests/splits/scenario_b_dev_seed42_n2000_v20")
+DEFAULT_SPLIT_DIR = Path("manifests/splits/scenario_b_dev_seed42_n1000_v20")
 TRAIN_CONFIG_NAME = "GP_LPR_HR_RODOSOL_train.yaml"
 TEST_CONFIG_NAME = "GP_LPR_RODOSOL_test.yaml"
 FRAME_PATTERN = re.compile(r"^(?P<prefix>hr|lr)-(?P<index>\d+)$", re.IGNORECASE)
