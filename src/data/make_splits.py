@@ -170,10 +170,10 @@ def _count_rows(rows: list[dict[str, Any]]) -> dict[str, Any]:
 
 def _build_split_name(split_mode: str, seed: int, val_ratio: float, max_tracks_total: int | None) -> str:
     ratio_tag = f"v{int(round(val_ratio * 100)):02d}"
+    total_tag = f"_n{max_tracks_total}" if max_tracks_total is not None else ""
     if split_mode == "debug_small":
-        total_tag = f"_n{max_tracks_total}" if max_tracks_total is not None else ""
         return f"{split_mode}_seed{seed}{total_tag}_{ratio_tag}"
-    return f"{split_mode}_seed{seed}_{ratio_tag}"
+    return f"{split_mode}_seed{seed}{total_tag}_{ratio_tag}"
 
 
 def make_split(

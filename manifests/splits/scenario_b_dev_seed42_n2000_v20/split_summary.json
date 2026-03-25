@@ -1,0 +1,61 @@
+{
+  "split_name": "scenario_b_dev_seed42_n2000_v20",
+  "split_mode": "scenario_b_dev",
+  "seed": 42,
+  "val_ratio": 0.2,
+  "filters": {
+    "scenarios": null,
+    "domains": null
+  },
+  "caps": {
+    "max_tracks_total": 2000,
+    "max_train_tracks": null,
+    "max_val_tracks": null
+  },
+  "selected_track_count": 2000,
+  "selected_counts": {
+    "tracks": 2000,
+    "lr_images": 10000,
+    "hr_images": 10000,
+    "scenario_counts": {
+      "Scenario-A": 1000,
+      "Scenario-B": 1000
+    },
+    "domain_counts": {
+      "Scenario-A/Brazilian": 500,
+      "Scenario-A/Mercosur": 500,
+      "Scenario-B/Brazilian": 200,
+      "Scenario-B/Mercosur": 800
+    }
+  },
+  "train_counts": {
+    "tracks": 1800,
+    "lr_images": 9000,
+    "hr_images": 9000,
+    "scenario_counts": {
+      "Scenario-A": 1000,
+      "Scenario-B": 800
+    },
+    "domain_counts": {
+      "Scenario-A/Brazilian": 500,
+      "Scenario-A/Mercosur": 500,
+      "Scenario-B/Brazilian": 160,
+      "Scenario-B/Mercosur": 640
+    }
+  },
+  "val_counts": {
+    "tracks": 200,
+    "lr_images": 1000,
+    "hr_images": 1000,
+    "scenario_counts": {
+      "Scenario-B": 200
+    },
+    "domain_counts": {
+      "Scenario-B/Brazilian": 40,
+      "Scenario-B/Mercosur": 160
+    }
+  },
+  "leakage": {
+    "train_val_overlap_tracks": 0
+  }
+}

@@ -38,7 +38,7 @@ python scripts/stage_a_prepare_gplpr.py \
   --project-root . \
   --dataset-root ./train \
   --gplpr-repo /path/to/gplpr \
-  --split-dir ./manifests/splits/scenario_b_dev_seed42_v20 \
+  --split-dir ./manifests/splits/scenario_b_dev_seed42_n2000_v20 \
   --stage-dir ./external_data/gplpr_stage \
   --output-dir ./outputs/stage_a \
   --mode symlink
@@ -51,7 +51,7 @@ python scripts/stage_a_train_gplpr.py \
   --project-root . \
   --dataset-root ./train \
   --gplpr-repo /path/to/gplpr \
-  --split-dir ./manifests/splits/scenario_b_dev_seed42_v20 \
+  --split-dir ./manifests/splits/scenario_b_dev_seed42_n2000_v20 \
   --stage-dir ./external_data/gplpr_stage \
   --output-dir ./outputs/stage_a \
   --resume /path/to/optional_resume.pth
@@ -64,10 +64,10 @@ python scripts/stage_a_eval_gplpr.py \
   --project-root . \
   --dataset-root ./train \
   --gplpr-repo /path/to/gplpr \
-  --split-dir ./manifests/splits/scenario_b_dev_seed42_v20 \
+  --split-dir ./manifests/splits/scenario_b_dev_seed42_n2000_v20 \
   --stage-dir ./external_data/gplpr_stage \
   --output-dir ./outputs/stage_a \
-  --checkpoint ./outputs/stage_a/checkpoints/stage_a_scenario_b_dev_seed42_v20/best_model.pth
+  --checkpoint ./outputs/stage_a/checkpoints/stage_a_scenario_b_dev_seed42_n2000_v20/best_model.pth
 ```
 
 Stage A outputs:
