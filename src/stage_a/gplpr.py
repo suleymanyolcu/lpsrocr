@@ -254,6 +254,61 @@ def _validate_plate_text(gt_text: str, alphabet: str) -> None:
         )
 
 
+def _normalize_gplpr_model_args(model_args: dict[str, Any]) -> dict[str, Any]:
+    normalized = dict(model_args)
+    lower_k = normalized.pop("k", None)
+    if "K" not in normalized:
+        normalized["K"] = lower_k if lower_k is not None else 7
+    return normalized
+
+
+def _checkpoint_has_lowercase_k(checkpoint: Any) -> bool:
+    if not isinstance(checkpoint, dict):
+        return False
+    model_spec = checkpoint.get("model")
+    if not isinstance(model_spec, dict):
+        return False
+    model_args = model_spec.get("args")
+    if not isinstance(model_args, dict):
+        return False
+    return "k" in model_args
+
+
+def _ensure_compatible_checkpoint(
+    checkpoint_path: str | Path,
+    *,
+    output_dir: Path,
+) -> Path:
+    checkpoint_path = Path(checkpoint_path).expanduser().resolve()
+    if not checkpoint_path.exists():
+        raise FileNotFoundError(f"Checkpoint not found: {checkpoint_path}")
+
+    try:
+        import torch
+    except Exception as exc:  # pragma: no cover - dependency error
+        raise RuntimeError("PyTorch is required to patch GPLPR checkpoints") from exc
+
+    checkpoint = torch.load(checkpoint_path, map_location="cpu")
+    if not _checkpoint_has_lowercase_k(checkpoint):
+        return checkpoint_path
+
+    compat_dir = ensure_dir(output_dir / "compat_checkpoints")
+    compat_path = compat_dir / checkpoint_path.name
+    if compat_path.exists() and compat_path.stat().st_mtime >= checkpoint_path.stat().st_mtime:
+        compat_checkpoint = torch.load(compat_path, map_location="cpu")
+        if not _checkpoint_has_lowercase_k(compat_checkpoint):
+            return compat_path
+
+    model_spec = checkpoint.get("model")
+    model_args = model_spec.get("args")
+    patched_checkpoint = deepcopy(checkpoint)
+    patched_model = dict(model_spec)
+    patched_model["args"] = _normalize_gplpr_model_args(model_args)
+    patched_checkpoint["model"] = patched_model
+    torch.save(patched_checkpoint, compat_path)
+    return compat_path
+
+
 def _stage_rows(
     *,
     dataset_root: Path,
@@ -412,11 +467,14 @@ def build_train_config(
     resume_path = Path(resume).expanduser().resolve() if resume is not None else None
     if resume_path is not None and not resume_path.exists():
         raise FileNotFoundError(f"Resume checkpoint not found: {resume_path}")
+    if resume_path is not None:
+        resume_path = _ensure_compatible_checkpoint(resume_path, output_dir=paths.output_dir)
 
     config["alphabet"] = alphabet
     config.setdefault("model", {}).setdefault("args", {})
     config["model"]["args"]["alphabet"] = alphabet
-    config["model"]["args"]["k"] = 7
+    config["model"]["args"]["K"] = 7
+    config["model"]["args"].pop("k", None)
 
     for dataset_key, phase in (("train_dataset", "training"), ("val_dataset", "validation")):
         dataset = config.setdefault(dataset_key, {})
@@ -469,6 +527,7 @@ def build_eval_config(
     config = deepcopy(config)
     split_file = paths.split_file.resolve()
     checkpoint_path = Path(checkpoint_path).expanduser().resolve()
+    checkpoint_path = _ensure_compatible_checkpoint(checkpoint_path, output_dir=paths.output_dir)
 
     config["alphabet"] = alphabet
     config.setdefault("model_ocr", {})

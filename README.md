@@ -80,6 +80,7 @@ Note:
 - GPLPR’s current test output does not expose confidence, so the evaluation wrapper records `confidence: null`.
 - If Colab says `No module named 'kornia'`, rerun `pip install -r requirements.txt` or `pip install kornia` before training.
 - If you use a pretrained GPLPR checkpoint with `--resume`, the wrapper adds a small `ReduceLROnPlateau` block because GPLPR’s resume path expects one.
+- If Colab says `No module named 'Levenshtein'`, rerun `pip install -r requirements.txt` or `pip install python-Levenshtein` before evaluation.
 
 ## Workflow
 
