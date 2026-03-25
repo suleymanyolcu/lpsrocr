@@ -1,0 +1,26 @@
+project:
+  name: lpsrocr
+  description: ICPR 2026 low-resolution license plate recognition bootstrap
+
+paths:
+  dataset_root: ./train
+  manifests_root: ./manifests
+  outputs_root: ./outputs
+  notebooks_root: ./notebooks
+
+splits:
+  default_seed: 42
+  default_val_ratio: 0.2
+  debug_small_tracks: 32
+
+stages:
+  stage_a:
+    name: gplpr_ocr
+    description: Fine-tune OCR on HR frames from competition data
+  stage_b:
+    name: lpsr_lacd
+    description: Fine-tune SR on paired HR/LR competition data
+  stage_c:
+    name: inference_eval
+    description: Run LR -> SR -> OCR -> track aggregation
+
