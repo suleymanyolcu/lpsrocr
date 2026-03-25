@@ -78,6 +78,7 @@ Stage A outputs:
 
 Note:
 - GPLPR’s current test output does not expose confidence, so the evaluation wrapper records `confidence: null`.
+- If Colab says `No module named 'kornia'`, rerun `pip install -r requirements.txt` or `pip install kornia` before training.
 
 ## Workflow
 

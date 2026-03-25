@@ -61,7 +61,19 @@ class StageAPaths:
 
 
 class _NullSummaryWriter:
+    def __init__(self, *args: Any, **kwargs: Any) -> None:  # pragma: no cover - trivial
+        return None
+
     def add_scalar(self, *args: Any, **kwargs: Any) -> None:  # pragma: no cover - trivial
+        return None
+
+    def add_text(self, *args: Any, **kwargs: Any) -> None:  # pragma: no cover - trivial
+        return None
+
+    def add_image(self, *args: Any, **kwargs: Any) -> None:  # pragma: no cover - trivial
+        return None
+
+    def add_histogram(self, *args: Any, **kwargs: Any) -> None:  # pragma: no cover - trivial
         return None
 
     def flush(self) -> None:  # pragma: no cover - trivial
@@ -69,6 +81,18 @@ class _NullSummaryWriter:
 
     def close(self) -> None:  # pragma: no cover - trivial
         return None
+
+    def __enter__(self) -> "_NullSummaryWriter":  # pragma: no cover - trivial
+        return self
+
+    def __exit__(self, exc_type, exc, tb) -> bool:  # pragma: no cover - trivial
+        return False
+
+    def __getattr__(self, name: str) -> Any:  # pragma: no cover - trivial
+        def _noop(*args: Any, **kwargs: Any) -> None:
+            return None
+
+        return _noop
 
 
 @contextmanager
