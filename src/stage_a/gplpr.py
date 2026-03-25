@@ -30,6 +30,11 @@ TRAIN_CONFIG_NAME = "GP_LPR_HR_RODOSOL_train.yaml"
 TEST_CONFIG_NAME = "GP_LPR_RODOSOL_test.yaml"
 FRAME_PATTERN = re.compile(r"^(?P<prefix>hr|lr)-(?P<index>\d+)$", re.IGNORECASE)
 STAGE_PATH_ANCHOR = "images"
+DEFAULT_REDUCE_ON_PLATEAU = {
+    "mode": "min",
+    "factor": 0.5,
+    "patience": 50,
+}
 
 
 @dataclass(slots=True)
@@ -424,6 +429,8 @@ def build_train_config(
         dataset["wrapper"]["args"]["with_lr"] = False
 
     config["resume"] = resume_path.as_posix() if resume_path is not None else None
+    if resume_path is not None and config.get("reduce_on_plateau") is None:
+        config["reduce_on_plateau"] = dict(DEFAULT_REDUCE_ON_PLATEAU)
     config["stage_a"] = {
         "project_root": paths.project_root.as_posix(),
         "dataset_root": paths.dataset_root.as_posix(),
