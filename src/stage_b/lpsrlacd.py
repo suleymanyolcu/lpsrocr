@@ -757,6 +757,7 @@ def _run_sr_model(
     model: Any,
     lr_path: Path,
     hr_path: Path,
+    device: Any = None,
     img_h: int = DEFAULT_IMG_H,
     img_w: int = DEFAULT_IMG_W,
     image_aspect_ratio: float = DEFAULT_IMAGE_ASPECT_RATIO,
@@ -777,7 +778,13 @@ def _run_sr_model(
     lr_rgb = _resize_rgb(lr_rgb, (img_w, img_h))
     hr_rgb = _resize_rgb(hr_rgb, (img_w * 2, img_h * 2))
 
-    lr_tensor = _rgb_to_tensor(lr_rgb).unsqueeze(0)
+    if device is None:
+        try:
+            device = next(model.parameters()).device
+        except StopIteration:
+            device = torch.device("cpu")
+
+    lr_tensor = _rgb_to_tensor(lr_rgb).unsqueeze(0).to(device)
     with torch.no_grad():
         sr = model(lr_tensor)
         if isinstance(sr, tuple):
