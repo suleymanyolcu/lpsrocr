@@ -629,6 +629,12 @@ def _patch_step_lr_verbose_compat(module: ModuleType | None = None) -> None:
         setattr(module, "StepLR", compat_step_lr)
 
 
+def _patch_lpsrlacd_runtime_globals(module: ModuleType, *, n_gpus: int) -> None:
+    # Upstream lpsr-lacd assumes a module-global `n_gpus` exists in save_model().
+    # Newer Python/PyTorch combinations can trip that assumption, so inject it here.
+    setattr(module, "n_gpus", n_gpus)
+
+
 def _seed_torch(seed: int) -> None:
     _seed_everything(seed)
 
@@ -837,6 +843,7 @@ def run_lpsrlacd_train(
     with _temporary_sys_path(paths.lpsrlacd_repo), _temporary_cwd(paths.project_root):
         lpsr_train = _load_lpsrlacd_module(paths.lpsrlacd_repo, "lpsrlacd_train_stage_b", "ParallelNetTrain.py")
         _patch_step_lr_verbose_compat(lpsr_train)
+        _patch_lpsrlacd_runtime_globals(lpsr_train, n_gpus=torch.cuda.device_count())
         lpsr_train.main(config, paths.train_run_dir)
 
     sr_checkpoint = _select_best_checkpoint(paths.train_run_dir, model_name=config["MODEL_SR"]["name"])
