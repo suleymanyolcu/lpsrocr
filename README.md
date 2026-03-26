@@ -82,6 +82,68 @@ Note:
 - If you use a pretrained GPLPR checkpoint with `--resume`, the wrapper adds a small `ReduceLROnPlateau` block because GPLPR’s resume path expects one.
 - If Colab says `No module named 'Levenshtein'`, rerun `pip install -r requirements.txt` or `pip install python-Levenshtein` before evaluation.
 
+## Stage B
+
+Stage B fine-tunes `lpsr-lacd` on paired LR/HR competition frames.
+
+What it does:
+- stages paired HR and LR images into `external_data/lpsrlacd_stage/images/...`
+- writes same-stem HR `.txt` labels with `plate: <GT_TEXT>`
+- generates `split_pairs.txt` lines in the repo's expected format: `HR_path;LR_path;training|validation`
+- uses the Scenario-B dev split by default
+- wires Stage A's GPLPR checkpoint into `LOAD_PRE_TRAINED_OCR` when you pass `--resume-ocr`
+
+Important note:
+- the upstream SR loss has a separate `loss_sr.args.load` OCR path that expects the repo's original Keras OCR artifact, not the GPLPR `.pth` checkpoint
+- this repo sets `loss_sr.args.load: null` by default because the training path supplies OCR predictions directly from the OCR branch
+- the upstream `test.py` saves by basename, so the Stage B inference wrapper uses a track-safe custom exporter instead
+
+Prepare data:
+
+```bash
+python scripts/stage_b_prepare_lpsrlacd.py \
+  --project-root . \
+  --dataset-root ./train \
+  --lpsrlacd-repo /path/to/lpsr-lacd \
+  --split-dir ./manifests/splits/scenario_b_dev_seed42_n400_v20 \
+  --stage-dir ./external_data/lpsrlacd_stage \
+  --output-dir ./outputs/stage_b \
+  --mode symlink
+```
+
+Fine-tune in Colab:
+
+```bash
+python scripts/stage_b_train_lpsrlacd.py \
+  --project-root . \
+  --dataset-root ./train \
+  --lpsrlacd-repo /path/to/lpsr-lacd \
+  --split-dir ./manifests/splits/scenario_b_dev_seed42_n400_v20 \
+  --stage-dir ./external_data/lpsrlacd_stage \
+  --output-dir ./outputs/stage_b \
+  --resume-ocr /path/to/stage_a/best_model.pth
+```
+
+Run validation inference:
+
+```bash
+python scripts/stage_b_infer_lpsrlacd.py \
+  --project-root . \
+  --dataset-root ./train \
+  --lpsrlacd-repo /path/to/lpsr-lacd \
+  --split-dir ./manifests/splits/scenario_b_dev_seed42_n400_v20 \
+  --stage-dir ./external_data/lpsrlacd_stage \
+  --output-dir ./outputs/stage_b \
+  --checkpoint ./outputs/stage_b/checkpoints/stage_b_scenario_b_dev_seed42_n400_v20/best_model.pth
+```
+
+Stage B outputs:
+- `outputs/stage_b/configs/`
+- `outputs/stage_b/checkpoints/`
+- `outputs/stage_b/restored/Scenario-B/...`
+- `outputs/stage_b/eval/sr_per_image.csv`
+- `outputs/stage_b/eval/sr_summary.json`
+
 ## Workflow
 
 1. Edit code locally in VSCode.
