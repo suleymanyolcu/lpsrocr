@@ -604,6 +604,31 @@ def _load_lpsrlacd_module(repo_root_path: Path, module_name: str, relative_file:
     return module
 
 
+def _patch_step_lr_verbose_compat(module: ModuleType | None = None) -> None:
+    try:
+        from torch.optim import lr_scheduler as torch_lr_scheduler
+    except Exception:
+        return
+
+    original_step_lr = torch_lr_scheduler.StepLR
+    if getattr(original_step_lr, "_lpsrocr_compat", False):
+        compat_step_lr = original_step_lr
+    else:
+        class CompatStepLR(original_step_lr):  # type: ignore[misc, valid-type]
+            def __init__(self, optimizer, *args, **kwargs):
+                kwargs.pop("verbose", None)
+                super().__init__(optimizer, *args, **kwargs)
+
+        CompatStepLR._lpsrocr_compat = True  # type: ignore[attr-defined]
+        CompatStepLR.__name__ = "StepLR"
+        CompatStepLR.__qualname__ = "StepLR"
+        compat_step_lr = CompatStepLR
+        torch_lr_scheduler.StepLR = compat_step_lr
+
+    if module is not None:
+        setattr(module, "StepLR", compat_step_lr)
+
+
 def _seed_torch(seed: int) -> None:
     _seed_everything(seed)
 
@@ -808,8 +833,10 @@ def run_lpsrlacd_train(
     _write_yaml(config, paths.train_config)
     ensure_dir(paths.train_run_dir)
 
+    _patch_step_lr_verbose_compat()
     with _temporary_sys_path(paths.lpsrlacd_repo), _temporary_cwd(paths.project_root):
         lpsr_train = _load_lpsrlacd_module(paths.lpsrlacd_repo, "lpsrlacd_train_stage_b", "ParallelNetTrain.py")
+        _patch_step_lr_verbose_compat(lpsr_train)
         lpsr_train.main(config, paths.train_run_dir)
 
     sr_checkpoint = _select_best_checkpoint(paths.train_run_dir, model_name=config["MODEL_SR"]["name"])
