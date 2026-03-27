@@ -144,6 +144,74 @@ Stage B outputs:
 - `outputs/stage_b/eval/sr_per_image.csv`
 - `outputs/stage_b/eval/sr_summary.json`
 
+## Stage C
+
+Stage C runs the end-to-end benchmark-style OCR evaluation:
+- GPLPR on the original LR validation images
+- GPLPR on the SR-restored validation images from Stage B
+- deterministic track aggregation
+- LR vs SR comparison
+- competition-style prediction text writing
+
+Important note:
+- GPLPR does not expose per-frame confidence, so Stage C uses a deterministic vote-share proxy for track-level confidence
+- the OCR checkpoint for Stage C is the Stage A GPLPR `best_model.pth`, not the Stage B SR checkpoint
+
+Run GPLPR on original LR images:
+
+```bash
+python scripts/stage_c_run_gplpr_on_lr.py \
+  --project-root . \
+  --dataset-root ./train \
+  --gplpr-repo /path/to/gplpr \
+  --split-dir ./manifests/splits/scenario_b_dev_seed42_n400_v20 \
+  --gplpr-checkpoint ./outputs/stage_a/checkpoints/<stage_a_run_tag>/best_model.pth \
+  --stage-dir ./external_data/stage_c_lr \
+  --output-dir ./outputs/stage_c/lr \
+  --mode symlink
+```
+
+Run GPLPR on SR-restored images:
+
+```bash
+python scripts/stage_c_run_gplpr_on_sr.py \
+  --project-root . \
+  --gplpr-repo /path/to/gplpr \
+  --restored-manifest ./outputs/stage_b/restored/restoration_manifest.jsonl \
+  --gplpr-checkpoint ./outputs/stage_a/checkpoints/<stage_a_run_tag>/best_model.pth \
+  --stage-dir ./external_data/stage_c_sr \
+  --output-dir ./outputs/stage_c/sr \
+  --mode symlink
+```
+
+Compare LR baseline vs SR+OCR:
+
+```bash
+python scripts/stage_c_compare_lr_sr.py \
+  --lr-output-dir ./outputs/stage_c/lr \
+  --sr-output-dir ./outputs/stage_c/sr \
+  --output-dir ./outputs/stage_c/comparison
+```
+
+Write a competition-style prediction file:
+
+```bash
+python scripts/stage_c_write_submission_like_txt.py \
+  --per-track-csv ./outputs/stage_c/sr/per_track.csv \
+  --output-file ./outputs/stage_c/submissions/sr_majority.txt \
+  --aggregation-mode majority
+```
+
+Stage C outputs:
+- `outputs/stage_c/lr/per_image.csv`
+- `outputs/stage_c/lr/per_track.csv`
+- `outputs/stage_c/lr/summary.json`
+- `outputs/stage_c/sr/per_image.csv`
+- `outputs/stage_c/sr/per_track.csv`
+- `outputs/stage_c/sr/summary.json`
+- `outputs/stage_c/comparison/lr_vs_sr_summary.json`
+- `outputs/stage_c/comparison/lr_vs_sr_report.md`
+
 ## Workflow
 
 1. Edit code locally in VSCode.
